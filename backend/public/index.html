@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nifty 50 Sentiment Engine · Backend Console & API Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080c14;
+      --bg-surface: #0f172a;
+      --bg-surface-elevated: #1e293b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-active: rgba(59, 130, 246, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-bullish: #10b981;
+      --accent-bullish-bg: rgba(16, 185, 129, 0.12);
+      --accent-bearish: #ef4444;
+      --accent-bearish-bg: rgba(239, 68, 68, 0.12);
+      --accent-neutral: #eab308;
+      --accent-neutral-bg: rgba(234, 179, 8, 0.12);
+      --primary: #3b82f6;
+      --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      --glow-blue: 0 0 24px rgba(59, 130, 246, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 60%, rgba(139, 92, 246, 0.10) 0%, transparent 45%),
+        linear-gradient(to bottom, #080c14, #0b1120);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Top Nav */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.85rem 2rem;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--primary-gradient);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-blue);
+      font-size: 1.3rem;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-be {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #60a5fa;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .brand-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--text-main);
+    }
+
+    .server-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .btn-fe-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--primary-gradient);
+      color: white;
+      text-decoration: none;
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-fe-launch:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Hero / Welcome Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      margin-bottom: 0.85rem;
+    }
+
+    .hero-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      max-width: 800px;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* System Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(59, 130, 246, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--bg-surface-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stat-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Section Titles */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Two Column Layout */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-2col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+    }
+
+    /* NLP Playground */
+    .nlp-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .quick-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
+
+    .sample-pill {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sample-pill:hover {
+      color: var(--text-main);
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    textarea, select, input {
+      background: rgba(8, 12, 20, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      padding: 0.75rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus, select:focus, input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+
+    .nlp-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn-action {
+      flex: 1;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    }
+
+    .btn-action:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* NLP Output Card */
+    .nlp-result-card {
+      margin-top: 1.25rem;
+      background: rgba(8, 12, 20, 0.9);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .nlp-score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .sentiment-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-bullish {
+      background: var(--accent-bullish-bg);
+      color: var(--accent-bullish);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-bearish {
+      background: var(--accent-bearish-bg);
+      color: var(--accent-bearish);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-neutral {
+      background: var(--accent-neutral-bg);
+      color: var(--accent-neutral);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+    }
+
+    .meter-container {
+      margin-bottom: 1rem;
+    }
+
+    .meter-bar {
+      height: 10px;
+      background: #1e293b;
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 0.4rem;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .result-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+
+    .rm-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.65rem;
+      text-align: center;
+    }
+
+    .rm-lbl {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .rm-val {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+
+    /* API Explorer */
+    .endpoint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .endpoint-item {
+      background: rgba(8, 12, 20, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: all 0.2s;
+    }
+
+    .endpoint-item:hover {
+      border-color: rgba(59, 130, 246, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .ep-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .method-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.25rem 0.5rem;
+      border-radius: 5px;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .m-get {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .m-post {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .ep-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .ep-desc {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .btn-test-ep {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.4rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-test-ep:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Terminal Console Inspector */
+    .terminal-panel {
+      background: #050811;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .terminal-header {
+      background: #0d1322;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .terminal-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+    }
+
+    .t-status-code {
+      color: #34d399;
+      font-weight: 700;
+    }
+
+    .t-time {
+      color: var(--text-dim);
+    }
+
+    .btn-copy {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: color 0.15s;
+    }
+
+    .btn-copy:hover {
+      color: var(--text-main);
+    }
+
+    pre#terminal-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      padding: 1.25rem;
+      max-height: 340px;
+      overflow-y: auto;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Live Stocks Table */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    table.stocks-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    table.stocks-table th {
+      background: rgba(8, 12, 20, 0.8);
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    table.stocks-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    table.stocks-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .sym-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.82rem;
+      margin-top: 2rem;
+      background: rgba(8, 12, 20, 0.6);
+    }
+
+    footer a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <div class="brand-icon">📈</div>
+        <div>
+          <div class="brand-title">
+            NIFTY 50 SENTIMENT ENGINE
+            <span class="badge-be">API CORE</span>
+          </div>
+          <div class="brand-sub">Real-Time Financial NLP & Stock Heatmap Backend</div>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <a href="#explorer" class="nav-link">API Explorer</a>
+        <a href="#nlp-playground" class="nav-link">NLP Tester</a>
+        <a href="#stocks-preview" class="nav-link">Live Universe</a>
+        
+        <div class="server-status-pill">
+          <div class="pulse-dot"></div>
+          <span id="nav-server-status">ONLINE : 5000</span>
+        </div>
+
+        <a href="http://localhost:5173" target="_blank" class="btn-fe-launch" title="Open the React Heatmap Web App">
+          <span>✨ Open Frontend App (5173)</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+
+    <!-- Hero / Server Overview Banner -->
+    <section class="hero-banner">
+      <div class="hero-tag">⚡ Control Center & Status Portal</div>
+      <h1 class="hero-title">Backend API & Real-Time Sentiment Engine</h1>
+      <p class="hero-desc">
+        Serving live algorithmic sentiment scoring, financial news web scraping, and market metrics for all 50 constituent stocks of India's benchmark NIFTY 50 index.
+      </p>
+
+      <!-- Live Metrics Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🟢</div>
+          <div>
+            <div class="stat-label">Health & DB</div>
+            <div class="stat-val" id="stat-db">ONLINE</div>
+            <div class="stat-sub" id="stat-db-sub">Hybrid Store Ready</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div>
+            <div class="stat-label">Tracked Equities</div>
+            <div class="stat-val" id="stat-stocks-count">50 Equities</div>
+            <div class="stat-sub">Nifty 50 Constituent Universe</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🧠</div>
+          <div>
+            <div class="stat-label">Sentiment Engine</div>
+            <div class="stat-val">VADER + FinBERT</div>
+            <div class="stat-sub">Dual Lexicon Pipeline</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📰</div>
+          <div>
+            <div class="stat-label">Scraper Feeds</div>
+            <div class="stat-val" id="stat-news-count">Active Feeds</div>
+            <div class="stat-sub">Moneycontrol / ET / Google</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 Column Section: NLP Playground + Interactive API Explorer -->
+    <div class="grid-2col">
+      
+      <!-- Interactive NLP Playground Card -->
+      <section class="glass-panel" id="nlp-playground">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              <span>🧠</span> Interactive NLP Headline Sandbox
+            </h2>
+            <div class="section-subtitle">Test custom financial news headlines and calculate sentiment & predicted stock price movement instantly.</div>
+          </div>
+        </div>
+
+        <div class="nlp-form">
+          <div class="form-group">
+            <label class="form-label">
+              <span>Financial News Headline</span>
+              <span style="color: var(--text-dim); font-size: 0.72rem;">Click a sample:</span>
+            </label>
+            <textarea id="nlp-headline-input" rows="3" placeholder="Enter headline to analyze...">Reliance Industries quarterly profit surges 28% beating Dalal Street estimates with robust telecom ARPU growth.</textarea>
+            
+            <div class="quick-samples">
+              <span class="sample-pill" onclick="setHeadline('Reliance Industries quarterly profit surges 28% beating Dalal Street estimates with robust telecom ARPU growth.', 'RELIANCE')">📈 Reliance Beats</span>
+              <span class="sample-pill" onclick="setHeadline('Infosys trims annual revenue growth guidance amid persistent macro headwinds and tech budget cuts.', 'INFY')">📉 Infosys Downgrade</span>
+              <span class="sample-pill" onclick="setHeadline('HDFC Bank asset quality strengthens significantly as gross NPAs drop to multi-year record lows.', 'HDFCBANK')">🏦 HDFC NPAs Drop</span>
+              <span class="sample-pill" onclick="setHeadline('Tata Motors EV sales hit fresh peak, signs landmark green mobility expansion pact.', 'TATAMOTORS')">⚡ Tata EV High</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="nlp-stock-select">Target Nifty Stock</label>
+            <select id="nlp-stock-select">
+              <option value="RELIANCE">RELIANCE · Reliance Industries Ltd</option>
+              <option value="TCS">TCS · Tata Consultancy Services</option>
+              <option value="HDFCBANK">HDFCBANK · HDFC Bank Ltd</option>
+              <option value="INFY">INFY · Infosys Ltd</option>
+              <option value="ICICIBANK">ICICIBANK · ICICI Bank Ltd</option>
+              <option value="TATAMOTORS">TATAMOTORS · Tata Motors Ltd</option>
+              <option value="SBIN">SBIN · State Bank of India</option>
+              <option value="BHARTIARTL">BHARTIARTL · Bharti Airtel Ltd</option>
+              <option value="LT">LT · Larsen & Toubro</option>
+            </select>
+          </div>
+
+          <div class="nlp-actions">
+            <button class="btn-action" id="btn-run-nlp" onclick="runNlpAnalysis()">
+              <span>⚡ Analyze Sentiment & Impact</span>
+            </button>
+            <button class="btn-secondary" id="btn-commit-nlp" onclick="applyNlpFeed()" title="Commit this headline directly to the live backend news feed!">
+              <span>➕ Apply to Live Feed</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Container -->
+        <div class="nlp-result-card" id="nlp-result">
+          <div class="nlp-score-header">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase;">Sentiment Verdict</div>
+              <div style="font-size: 1.15rem; font-weight: 700; margin-top: 0.2rem;" id="res-headline-preview">Analyzed Result</div>
+            </div>
+            <span class="sentiment-badge badge-bullish" id="res-badge">BULLISH</span>
+          </div>
+
+          <div class="meter-container">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+              <span>Bearish (-1.0)</span>
+              <span id="res-score-text" style="font-weight: 700; color: var(--text-main);">Score: +0.78</span>
+              <span>Bullish (+1.0)</span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-fill" id="res-meter" style="width: 89%; background: var(--accent-bullish);"></div>
+            </div>
+          </div>
+
+          <div class="result-metrics">
+            <div class="rm-box">
+              <div class="rm-lbl">Confidence</div>
+              <div class="rm-val" id="res-confidence" style="color: #60a5fa;">88%</div>
+            </div>
+            <div class="rm-box">
+              <div class="rm-lbl">Predicted Impact</div>
+              <div class="rm-val" id="res-impact" style="color: var(--accent-bullish);">+2.35%</div>
+            </div>
+            <div class="rm-box">
+              <div class="rm-lbl">Target Range</div>
+              <div class="rm-val" id="res-target-range" style="font-size: 0.85rem; color: var(--text-main);">₹2,950 - ₹3,010</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive API Explorer & Live Inspector -->
+      <section class="glass-panel" id="explorer">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              <span>📡</span> Live API Explorer & Tester
+            </h2>
+            <div class="section-subtitle">Execute live HTTP requests against backend endpoints and inspect server payloads in real-time.</div>
+          </div>
+        </div>
+
+        <div class="endpoint-list">
+          
+          <div class="endpoint-item">
+            <div class="ep-left">
+              <span class="method-badge m-get">GET</span>
+              <div>
+                <div class="ep-path">/api/health</div>
+                <div class="ep-desc">Server health, uptime & DB status</div>
+              </div>
+            </div>
+            <button class="btn-test-ep" onclick="executeApi('/api/health', 'GET')">▶ Test</button>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="ep-left">
+              <span class="method-badge m-get">GET</span>
+              <div>
+                <div class="ep-path">/api/market-summary</div>
+                <div class="ep-desc">Nifty 50 overview & sector heat</div>
+              </div>
+            </div>
+            <button class="btn-test-ep" onclick="executeApi('/api/market-summary', 'GET')">▶ Test</button>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="ep-left">
+              <span class="method-badge m-get">GET</span>
+              <div>
+                <div class="ep-path">/api/stocks</div>
+                <div class="ep-desc">All 50 stocks with sentiment scores</div>
+              </div>
+            </div>
+            <button class="btn-test-ep" onclick="executeApi('/api/stocks', 'GET')">▶ Test</button>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="ep-left">
+              <span class="method-badge m-get">GET</span>
+              <div>
+                <div class="ep-path">/api/news?limit=5</div>
+                <div class="ep-desc">Latest financial news with sentiment scores</div>
+              </div>
+            </div>
+            <button class="btn-test-ep" onclick="executeApi('/api/news?limit=5', 'GET')">▶ Test</button>
+          </div>
+
+          <div class="endpoint-item">
+            <div class="ep-left">
+              <span class="method-badge m-post">POST</span>
+              <div>
+                <div class="ep-path">/api/news/scrape</div>
+                <div class="ep-desc">Trigger live multi-source web scraper</div>
+              </div>
+            </div>
+            <button class="btn-test-ep" onclick="executeApi('/api/news/scrape', 'POST')">⚡ Scrape</button>
+          </div>
+
+        </div>
+
+        <!-- Terminal Output Viewer -->
+        <div class="terminal-panel">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <div class="terminal-title" id="terminal-endpoint">GET /api/health</div>
+            <div class="terminal-meta">
+              <span class="t-status-code" id="terminal-status">STATUS: 200 OK</span>
+              <span class="t-time" id="terminal-latency">14ms</span>
+              <button class="btn-copy" onclick="copyTerminalOutput()" title="Copy JSON">
+                <span>📋 Copy</span>
+              </button>
+            </div>
+          </div>
+          <pre id="terminal-code">// Click any "Test" button above to view live response payloads.</pre>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Live Nifty 50 Stocks Universe Preview -->
+    <section class="glass-panel" id="stocks-preview">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">
+            <span>📊</span> Nifty 50 Constituent Universe Snapshot
+          </h2>
+          <div class="section-subtitle">Real-time sentiment scores calculated by the backend engine for Dalal Street benchmark equities.</div>
+        </div>
+        <button class="btn-secondary" onclick="loadStockTable()" style="font-size: 0.78rem; padding: 0.35rem 0.75rem;">
+          🔄 Refresh Table
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="stocks-table">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Company Name</th>
+              <th>Sector</th>
+              <th>Current Price</th>
+              <th>Day Change</th>
+              <th>Sentiment Score</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody id="stocks-tbody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                Fetching live Nifty 50 stocks from backend...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div style="margin-bottom: 0.5rem; font-weight: 600; color: var(--text-main);">
+      Nifty 50 Financial News Sentiment Analyzer & Indian Stock Heatmap Engine
+    </div>
+    <div>
+      Backend Server Port 5000 · Connected Frontend UI: <a href="http://localhost:5173" target="_blank">http://localhost:5173</a> · Full Stack Architecture
+    </div>
+  </footer>
+
+  <!-- Script for Live Operations -->
+  <script>
+    // Set Sample Headline
+    function setHeadline(text, symbol) {
+      document.getElementById('nlp-headline-input').value = text;
+      if (symbol) {
+        document.getElementById('nlp-stock-select').value = symbol;
+      }
+    }
+
+    // Execute API from Explorer
+    async function executeApi(endpoint, method = 'GET', body = null) {
+      const termEndpoint = document.getElementById('terminal-endpoint');
+      const termStatus = document.getElementById('terminal-status');
+      const termLatency = document.getElementById('terminal-latency');
+      const termCode = document.getElementById('terminal-code');
+
+      termEndpoint.innerText = `${method} ${endpoint}`;
+      termStatus.innerText = 'STATUS: Loading...';
+      termStatus.style.color = '#f59e0b';
+      termLatency.innerText = '...';
+      termCode.innerText = '// Sending request to server...';
+
+      const startTime = performance.now();
+      try {
+        const options = {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        };
+        if (body) {
+          options.body = JSON.stringify(body);
+        }
+
+        const res = await fetch(endpoint, options);
+        const data = await res.json();
+        const latency = Math.round(performance.now() - startTime);
+
+        termStatus.innerText = `STATUS: ${res.status} ${res.statusText || 'OK'}`;
+        termStatus.style.color = res.ok ? '#34d399' : '#ef4444';
+        termLatency.innerText = `${latency}ms`;
+        termCode.innerText = JSON.stringify(data, null, 2);
+
+        // Update hero metrics if health endpoint was called
+        if (endpoint === '/api/health' && data.database) {
+          document.getElementById('stat-db').innerText = data.database.status || 'ONLINE';
+          document.getElementById('stat-db-sub').innerText = data.database.type || 'Connected';
+        }
+      } catch (err) {
+        termStatus.innerText = 'STATUS: ERROR';
+        termStatus.style.color = '#ef4444';
+        termLatency.innerText = 'Failed';
+        termCode.innerText = `// Request Failed:\n${err.message}`;
+      }
+    }
+
+    // Run NLP Analysis
+    async function runNlpAnalysis() {
+      const headline = document.getElementById('nlp-headline-input').value.trim();
+      const symbol = document.getElementById('nlp-stock-select').value;
+      const btn = document.getElementById('btn-run-nlp');
+
+      if (!headline) {
+        alert('Please enter a financial headline first.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = '⏳ Analyzing with VADER...';
+
+      try {
+        const res = await fetch('/api/nlp/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ headline, symbol })
+        });
+        const json = await res.json();
+
+        if (json.success && json.data && json.data.analysis) {
+          const a = json.data.analysis;
+          const resultCard = document.getElementById('nlp-result');
+          const badge = document.getElementById('res-badge');
+          const scoreText = document.getElementById('res-score-text');
+          const meter = document.getElementById('res-meter');
+
+          resultCard.style.display = 'block';
+          document.getElementById('res-headline-preview').innerText = `${symbol} Sentiment Analysis`;
+
+          // Format Score
+          const formattedScore = a.score > 0 ? `+${a.score.toFixed(2)}` : a.score.toFixed(2);
+          scoreText.innerText = `Score: ${formattedScore}`;
+
+          // Format Percentage for Meter (convert -1..1 to 0..100)
+          const meterPercent = Math.min(100, Math.max(0, ((a.score + 1) / 2) * 100));
+          meter.style.width = `${meterPercent}%`;
+
+          // Badge & Colors
+          if (a.label === 'Bullish') {
+            badge.className = 'sentiment-badge badge-bullish';
+            badge.innerText = 'BULLISH';
+            meter.style.background = 'var(--accent-bullish)';
+          } else if (a.label === 'Bearish') {
+            badge.className = 'sentiment-badge badge-bearish';
+            badge.innerText = 'BEARISH';
+            meter.style.background = 'var(--accent-bearish)';
+          } else {
+            badge.className = 'sentiment-badge badge-neutral';
+            badge.innerText = 'NEUTRAL';
+            meter.style.background = 'var(--accent-neutral)';
+          }
+
+          document.getElementById('res-confidence').innerText = `${Math.round(a.confidence * 100)}%`;
+          const impactSign = a.predictedImpact > 0 ? '+' : '';
+          document.getElementById('res-impact').innerText = `${impactSign}${a.predictedImpact}%`;
+          document.getElementById('res-impact').style.color = a.predictedImpact >= 0 ? 'var(--accent-bullish)' : 'var(--accent-bearish)';
+
+          if (a.targetPriceRange) {
+            document.getElementById('res-target-range').innerText = `₹${a.targetPriceRange.low.toLocaleString('en-IN')} - ₹${a.targetPriceRange.high.toLocaleString('en-IN')}`;
+          }
+
+          // Also preview in terminal
+          executeApi('/api/nlp/analyze', 'POST', { headline, symbol });
+        }
+      } catch (err) {
+        alert('Error analyzing headline: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '⚡ Analyze Sentiment & Impact';
+      }
+    }
+
+    // Apply NLP to Live Feed
+    async function applyNlpFeed() {
+      const headline = document.getElementById('nlp-headline-input').value.trim();
+      const symbol = document.getElementById('nlp-stock-select').value;
+
+      if (!headline) {
+        alert('Please enter a headline first.');
+        return;
+      }
+
+      const res = await fetch('/api/nlp/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headline, symbol, source: 'Backend Control Center' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Success! Headline applied to ${symbol} sentiment model and news feed.`);
+        loadStockTable();
+        executeApi('/api/stocks/' + symbol, 'GET');
+      } else {
+        alert('Failed to apply: ' + data.error);
+      }
+    }
+
+    // Copy Terminal Output
+    function copyTerminalOutput() {
+      const text = document.getElementById('terminal-code').innerText;
+      navigator.clipboard.writeText(text);
+      const copyBtn = document.querySelector('.btn-copy span');
+      copyBtn.innerText = '✅ Copied!';
+      setTimeout(() => { copyBtn.innerText = '📋 Copy'; }, 2000);
+    }
+
+    // Load Live Stock Table
+    async function loadStockTable() {
+      const tbody = document.getElementById('stocks-tbody');
+      try {
+        const res = await fetch('/api/stocks');
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.data)) {
+          const stocks = json.data;
+          document.getElementById('stat-stocks-count').innerText = `${stocks.length} Equities`;
+
+          tbody.innerHTML = stocks.map(s => {
+            const isBull = s.sentimentScore >= 0.15;
+            const isBear = s.sentimentScore <= -0.15;
+            const badgeClass = isBull ? 'badge-bullish' : (isBear ? 'badge-bearish' : 'badge-neutral');
+            const label = isBull ? 'Bullish' : (isBear ? 'Bearish' : 'Neutral');
+            const changeColor = s.changePercent >= 0 ? '#10b981' : '#ef4444';
+            const changeSign = s.changePercent >= 0 ? '+' : '';
+
+            return `
+              <tr>
+                <td><span class="sym-badge">${s.symbol}</span></td>
+                <td>${s.name}</td>
+                <td><span style="color: var(--text-dim); font-size: 0.78rem;">${s.sector}</span></td>
+                <td style="font-weight: 600; font-family: 'JetBrains Mono', monospace;">₹${s.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                <td style="color: ${changeColor}; font-weight: 600; font-family: 'JetBrains Mono', monospace;">${changeSign}${s.changePercent}%</td>
+                <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${s.sentimentScore > 0 ? '+' : ''}${s.sentimentScore.toFixed(2)}</td>
+                <td><span class="sentiment-badge ${badgeClass}" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">${label}</span></td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color: #ef4444; text-align: center;">Failed to load stocks: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Initial Auto-load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Execute health check initially
+      executeApi('/api/health', 'GET');
+      // Load stocks table
+      loadStockTable();
+    });
+  </script>
+</body>
+</html>
